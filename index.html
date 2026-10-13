@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jovens IASD · Monitoramento</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--primary:#1a5490;--primary-dark:#123a63;--accent:#e8a33d;--success:#27ae60;
+        --danger:#e74c3c;--warning:#f39c12;--bg:#f4f6fa;--card:#fff;--text:#1e2a38;
+        --muted:#6b7785;--border:#e1e6ee}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+       background:var(--bg);color:var(--text);font-size:14px}
+  .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);padding:20px}
+  .login-card{background:#fff;padding:40px;border-radius:16px;width:100%;max-width:420px;
+    box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .login-logo{font-size:48px;text-align:center;margin-bottom:12px}
+  .login-card h1{text-align:center;color:var(--primary);font-size:24px}
+  .login-card p{text-align:center;margin-bottom:24px;color:var(--muted)}
+  .login-card label{display:block;margin-bottom:6px;font-weight:600;font-size:13px}
+  .login-card input{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;
+    margin-bottom:16px;font-size:14px;font-family:inherit}
+  .login-card input:focus{outline:none;border-color:var(--primary)}
+  .login-hint{margin-top:20px;padding:12px;background:#f0f4fa;border-radius:8px;
+    font-size:12px;color:var(--muted);line-height:1.6}
+  .layout{display:flex;min-height:100vh}
+  .sidebar{width:250px;background:var(--primary-dark);color:#fff;display:flex;
+    flex-direction:column;position:fixed;height:100vh}
+  .brand{display:flex;align-items:center;gap:12px;padding:20px;
+    border-bottom:1px solid rgba(255,255,255,.1)}
+  .brand-icon{font-size:28px}
+  .brand-title{font-weight:700;font-size:15px}
+  .brand-sub{font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1px}
+  .sidebar nav{padding:16px 8px;flex:1;overflow-y:auto}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;
+    color:rgba(255,255,255,.85);cursor:pointer;font-size:13.5px;margin-bottom:4px;
+    text-decoration:none;transition:background .15s}
+  .nav-item:hover{background:rgba(255,255,255,.08)}
+  .nav-item.active{background:var(--accent);color:#fff;font-weight:600}
+  .nav-icon{width:20px;text-align:center}
+  .nav-badge{margin-left:auto;background:var(--danger);color:#fff;padding:2px 8px;
+    border-radius:12px;font-size:11px;font-weight:700}
+  .sidebar-footer{padding:16px;border-top:1px solid rgba(255,255,255,.1)}
+  .user-badge{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .user-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);
+    display:flex;align-items:center;justify-content:center;font-weight:700}
+  .user-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .user-role{font-size:11px;color:var(--accent);text-transform:uppercase}
+  .main{margin-left:250px;flex:1;min-height:100vh}
+  .topbar{background:#fff;padding:18px 28px;border-bottom:1px solid var(--border);
+    position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center}
+  .topbar h1{font-size:20px;color:var(--primary)}
+  .online-dot{display:inline-block;width:8px;height:8px;background:var(--success);
+    border-radius:50%;margin-right:6px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .content{padding:24px 28px}
+  .card{background:var(--card);border-radius:12px;padding:22px;
+    box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:20px;border:1px solid var(--border)}
+  .card h2{font-size:17px;margin-bottom:16px;color:var(--primary)}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;margin-bottom:20px}
+  .stat{background:#fff;padding:18px;border-radius:12px;border:1px solid var(--border);
+    box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .stat-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .stat-value{font-size:28px;font-weight:700;color:var(--primary);margin-top:6px}
+  .stat-sub{font-size:12px;color:var(--muted);margin-top:4px}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:900px){.two-col{grid-template-columns:1fr}}
+  .btn{padding:10px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13.5px;
+    font-weight:600;transition:all .15s;font-family:inherit}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover:not(:disabled){background:var(--primary-dark)}
+  .btn-success{background:var(--success);color:#fff}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-warning{background:var(--warning);color:#fff}
+  .btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3)}
+  .btn-ghost:hover{background:rgba(255,255,255,.1)}
+  .btn-outline{background:transparent;color:var(--primary);border:1px solid var(--primary)}
+  .btn-sm{padding:6px 12px;font-size:12px}
+  .btn-block{width:100%}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:700px){.form-row{grid-template-columns:1fr}}
+  .form-group{margin-bottom:16px}
+  .form-group label{display:block;margin-bottom:6px;font-weight:600;font-size:13px}
+  .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;
+    border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+    outline:none;border-color:var(--primary)}
+  .checks{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+  .check-item{display:flex;align-items:center;gap:8px;padding:10px 14px;
+    background:#f0f4fa;border-radius:8px;cursor:pointer;font-weight:500;
+    border:2px solid transparent;transition:all .15s}
+  .check-item:has(input:checked){background:#e6f4ea;border-color:var(--success);color:var(--success)}
+  .check-item input{accent-color:var(--success)}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  .file-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .file-preview img{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
+  .file-preview .video-tag{width:80px;height:80px;display:flex;align-items:center;
+    justify-content:center;background:#222;color:#fff;border-radius:8px;font-size:22px}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:12px;text-align:left;border-bottom:1px solid var(--border);font-size:13.5px}
+  th{background:#f7f9fc;font-weight:600;color:var(--muted);text-transform:uppercase;
+    font-size:11px;letter-spacing:.5px}
+  tr:hover{background:#fafbfd}
+  tr.overdue{background:#fff3f3}
+  tr.overdue:hover{background:#ffe8e8}
+  .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;
+    font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+  .badge-success{background:#e6f4ea;color:var(--success)}
+  .badge-warning{background:#fdf3e2;color:var(--warning)}
+  .badge-danger{background:#fdeaea;color:var(--danger)}
+  .badge-info{background:#e8effa;color:var(--primary)}
+  .rank-item{display:flex;align-items:center;gap:16px;padding:14px;border-radius:10px;
+    margin-bottom:8px;background:#fff;border:1px solid var(--border)}
+  .rank-pos{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-weight:700;background:#e8effa;color:var(--primary);font-size:15px}
+  .rank-pos.gold{background:#ffd700;color:#7a5c00}
+  .rank-pos.silver{background:#c0c0c0;color:#555}
+  .rank-pos.bronze{background:#cd7f32;color:#fff}
+  .rank-info{flex:1}
+  .rank-name{font-weight:600}
+  .rank-detail{font-size:12px;color:var(--muted);margin-top:2px}
+  .rank-points{font-size:20px;font-weight:700;color:var(--primary)}
+  .bar-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .bar-label{width:140px;font-size:13px;font-weight:500}
+  .bar-track{flex:1;height:22px;background:#eef2f7;border-radius:6px;overflow:hidden}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));
+    border-radius:6px;transition:width .4s}
+  .bar-value{width:40px;text-align:right;font-weight:600;font-size:13px}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;
+    align-items:center;justify-content:center;z-index:100;padding:20px}
+  .modal{background:#fff;border-radius:14px;max-width:700px;width:100%;max-height:90vh;
+    overflow-y:auto;padding:26px}
+  .modal h2{color:var(--primary);margin-bottom:16px}
+  .modal-close{float:right;cursor:pointer;font-size:22px;color:var(--muted)}
+  .detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+  .detail-row .lbl{color:var(--muted);font-size:13px}
+  .detail-row .val{font-weight:600;font-size:13px}
+  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px}
+  .photo-grid img{width:100%;border-radius:8px;border:1px solid var(--border);cursor:pointer}
+  .empty{text-align:center;padding:40px 20px;color:var(--muted)}
+  .empty-icon{font-size:40px;margin-bottom:10px}
+  .muted{color:var(--muted)}
+  .alert{padding:14px;border-radius:10px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-start}
+  .alert-warning{background:#fdf3e2;border-left:4px solid var(--warning)}
+  .alert-danger{background:#fdeaea;border-left:4px solid var(--danger)}
+  .alert-info{background:#e8effa;border-left:4px solid var(--primary)}
+  .admin-modal{background:#fff;border-radius:14px;max-width:1100px;width:100%;
+    max-height:92vh;overflow:hidden;display:flex;flex-direction:column}
+  .admin-header{padding:20px 26px;border-bottom:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;background:var(--primary);
+    color:#fff;border-radius:14px 14px 0 0}
+  .admin-header h2{color:#fff;margin:0;font-size:18px}
+  .admin-header .close-x{cursor:pointer;font-size:22px;color:#fff;
+    padding:4px 10px;border-radius:6px;transition:background .15s}
+  .admin-header .close-x:hover{background:rgba(255,255,255,.15)}
+  .admin-tabs{display:flex;gap:4px;padding:12px 26px;background:#f7f9fc;
+    border-bottom:1px solid var(--border);overflow-x:auto}
+  .admin-tab{padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;
+    font-weight:600;color:var(--muted);white-space:nowrap;border:none;background:transparent;
+    font-family:inherit}
+  .admin-tab:hover{background:#e8effa;color:var(--primary)}
+  .admin-tab.active{background:var(--primary);color:#fff}
+  .admin-body{padding:22px 26px;overflow-y:auto;flex:1}
+  .admin-grid{display:grid;grid-template-columns:380px 1fr;gap:20px}
+  @media(max-width:900px){.admin-grid{grid-template-columns:1fr}}
+  .admin-form{background:#f7f9fc;padding:18px;border-radius:10px;
+    border:1px solid var(--border);align-self:start}
+  .admin-form h3{font-size:14px;color:var(--primary);margin-bottom:14px}
+  .admin-list{overflow-x:auto}
+  .admin-list table{font-size:13px}
+  .admin-list th,.admin-list td{padding:9px 10px}
+  .danger-zone{background:#fdeaea;border:2px solid var(--danger);border-radius:12px;
+    padding:20px;margin-top:20px}
+  .danger-zone h3{color:var(--danger);margin-bottom:8px;font-size:16px}
+  .danger-zone p{font-size:13px;margin-bottom:14px;color:#7a1f1f}
+  .icon-btn{background:transparent;border:none;cursor:pointer;font-size:16px;
+    padding:6px 8px;border-radius:6px;transition:background .15s;line-height:1}
+  .icon-btn:hover{background:rgba(0,0,0,.08)}
+  @media(max-width:760px){
+    .sidebar{width:100%;height:auto;position:relative}
+    .main{margin-left:0}
+    .layout{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+<div id="app">Carregando...</div>
+
+<script type="module">
+/* ===================== 1. IMPORTS ===================== */
+import { initializeApp, deleteApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+         createUserWithEmailAndPassword, sendPasswordResetEmail }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc,
+         updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp,
+         arrayUnion, writeBatch }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+/* ===================== 2. CONFIG ===================== */
+const firebaseConfig = {
+  apiKey:            "AIzaSyCJrXugew-x9IvZpgbbgzHvXfPZCuyxheQ",
+  authDomain:        "macroiasd.firebaseapp.com",
+  projectId:         "macroiasd",
+  storageBucket:     "macroiasd.firebasestorage.app",
+  messagingSenderId: "483144428962",
+  appId:             "1:483144428962:web:bfa2a715d4d4753ffb16fb"
+};
+
+/* ===== IMGBB API KEY ===== */
+const IMGBB_API_KEY = '9840a7978bd642621cdb9d1ce3e33325';
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const DEADLINE_DAYS = 7;
+
+/* ===================== 3. ESTADO ===================== */
+const state = {
+  user: null, needsBootstrap: false, loading: true,
+  view: 'dashboard',
+  filterType: 'all', filterStatus: 'all',
+  modal: null, pendingCount: 0,
+  regionais: [], distritais: [], igrejas: [], diretores: [], activities: [],
+  unsubs: [],
+  adminOpen: false,
+  adminTab: 'regionais',
+  adminEditId: null,
+  adminBusy: false
+};
+
+/* ===================== 4. HELPERS ===================== */
+const uid   = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+const today = () => new Date().toISOString().slice(0,10);
+const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('pt-BR') : '—';
+const fmtDateTime = (ts) => {
+  if (!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString('pt-BR');
+};
+const roleLabel = (r) => ({macro:'Direção Macro', regional:'Regional',
+                           distrital:'Distrital', diretor:'Diretor'}[r] || r);
+const typeLabel = (t) => ({maranata:'Maranata Class', comunidade:'Comunidade Jovem',
+                           outside:'Outside'}[t] || t);
+function statusBadge(s){
+  const map = {pendente:['Pendente','badge-warning'],
+               validado:['Validado','badge-success'],
+               rejeitado:['Rejeitado','badge-danger']};
+  const [l,c] = map[s] || ['?','badge-info'];
+  return `<span class="badge ${c}">${l}</span>`;
+}
+function isOverdue(a){
+  return a.status === 'pendente' && a.deadline && new Date(a.deadline) < new Date();
+}
+function activityPoints(a){
+  if (a.type === 'outside') return 60;
+  let pts = 50;
+  if (a.missionario) pts += 15;
+  if (a.licao7)      pts += 15;
+  if (a.visitas)     pts += 20;
+  return pts;
+}
+
+/* ===================== 5. ESCOPO ===================== */
+function scopeChurches(u){
+  if (!u) return [];
+  if (u.role === 'macro')    return state.igrejas.map(i => i.id);
+  if (u.role === 'regional') return state.igrejas
+    .filter(i => {
+      const d = state.distritais.find(x => x.id === i.districtId);
+      return d && d.regionalId === u.escopo;
+    }).map(i => i.id);
+  if (u.role === 'distrital')return state.igrejas.filter(i => i.districtId === u.escopo).map(i => i.id);
+  if (u.role === 'diretor')  return [u.churchId];
+  return [];
+}
+function scopeActivities(u){
+  const chs = scopeChurches(u);
+  return state.activities.filter(a => chs.includes(a.churchId));
+}
+function churchName(id){ const c = state.igrejas.find(i => i.id === id); return c ? c.name : '—'; }
+function directorName(id){ const d = state.diretores.find(i => i.id === id); return d ? d.name : '—'; }
+
+function churchStats(churchId){
+  const acts = state.activities.filter(a => a.churchId === churchId);
+  const validated = acts.filter(a => a.status === 'validado');
+  const pending   = acts.filter(a => a.status === 'pendente');
+  const rejected  = acts.filter(a => a.status === 'rejeitado');
+  const points = validated.reduce((s,a) => s + activityPoints(a), 0);
+  return {
+    points, total: acts.length,
+    validated: validated.length, pending: pending.length, rejected: rejected.length,
+    maranata: acts.filter(a => a.type === 'maranata').length,
+    comunidade: acts.filter(a => a.type === 'comunidade').length,
+    outside: acts.filter(a => a.type === 'outside').length
+  };
+}
+function ranking(churchIds){
+  return state.igrejas
+    .filter(i => churchIds.includes(i.id))
+    .map(c => ({ ...c, ...churchStats(c.id) }))
+    .sort((a,b) => b.points - a.points);
+}
+
+/* ===================== 6. AUTH ===================== */
+onAuthStateChanged(auth, async (fbUser) => {
+  state.loading = true; pararListeners(); render();
+
+  if (!fbUser){
+    state.user = null; state.loading = false; render();
+    return;
+  }
+  try {
+    const snap = await getDoc(doc(db, 'usuarios', fbUser.uid));
+    if (!snap.exists()){
+      const all = await getDocs(collection(db, 'usuarios'));
+      if (all.empty){
+        state.needsBootstrap = true;
+        state.user = { uid: fbUser.uid, email: fbUser.email };
+      } else {
+        await signOut(auth);
+        alert('Seu usuário não possui perfil cadastrado. Contate o administrador.');
+      }
+    } else {
+      const data = snap.data();
+      if (data.active === false){
+        await signOut(auth);
+        alert('Este usuário está desativado. Contate o administrador.');
+        return;
+      }
+      state.needsBootstrap = false;
+      state.user = { uid: fbUser.uid, email: fbUser.email, ...data };
+      await updateDoc(doc(db, 'usuarios', fbUser.uid), { lastLogin: serverTimestamp() })
+        .catch(()=>{});
+      iniciarListeners();
+    }
+  } catch(err){
+    console.error(err);
+    alert('Erro ao carregar perfil: ' + err.message);
+    await signOut(auth);
+  }
+  state.loading = false; render();
+});
+
+async function handleLogin(e){
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = 'Entrando...';
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(err){
+    const msgs = {
+      'auth/invalid-credential': 'E-mail ou senha inválidos.',
+      'auth/user-not-found':     'Usuário não encontrado.',
+      'auth/wrong-password':     'Senha incorreta.',
+      'auth/too-many-requests':  'Muitas tentativas. Tente novamente mais tarde.'
+    };
+    alert(msgs[err.code] || 'Erro: ' + err.message);
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+}
+async function handleLogout(){
+  if (!confirm('Deseja sair?')) return;
+  pararListeners();
+  await signOut(auth);
+}
+async function handleResetPassword(){
+  const email = document.getElementById('loginEmail').value.trim();
+  if (!email) return alert('Digite seu e-mail primeiro.');
+  try {
+    await sendPasswordResetEmail(auth, email);
+    alert('✅ E-mail de recuperação enviado para ' + email);
+  } catch(err){ alert('Erro: ' + err.message); }
+}
+async function confirmarBootstrap(e){
+  e.preventDefault();
+  const nome = document.getElementById('bootName').value.trim();
+  if (!nome) return;
+  try {
+    await setDoc(doc(db, 'usuarios', state.user.uid), {
+      name: nome, email: state.user.email,
+      role: 'macro', escopo: 'all',
+      active: true,
+      createdAt: serverTimestamp()
+    });
+    alert('✅ Você foi cadastrado como Direção Macro!');
+    location.reload();
+  } catch(err){ alert('Erro: ' + err.message); }
+}
+
+/* ===================== 7. LISTENERS ===================== */
+function pararListeners(){
+  state.unsubs.forEach(fn => { try { fn(); } catch(e){} });
+  state.unsubs = [];
+}
+let unsubAtividades = null;
+function setupAtividadesListener(){
+  if (unsubAtividades){ unsubAtividades(); unsubAtividades = null; }
+  const u = state.user;
+  if (!u || !u.role) return;
+  let q;
+  if (u.role === 'macro'){
+    q = collection(db, 'atividades');
+  } else if (u.role === 'regional'){
+    q = query(collection(db, 'atividades'), where('regionalId', '==', u.escopo));
+  } else if (u.role === 'distrital'){
+    q = query(collection(db, 'atividades'), where('districtId', '==', u.escopo));
+  } else {
+    q = query(collection(db, 'atividades'), where('directorId', '==', u.diretorId));
+  }
+  unsubAtividades = onSnapshot(q, snap => {
+    state.activities = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    scheduleRender();
+  }, err => console.error('Listener atividades:', err));
+}
+function iniciarListeners(){
+  pararListeners();
+  const u = state.user;
+  state.unsubs.push(onSnapshot(collection(db, 'regionais'), snap => {
+    state.regionais = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    scheduleRender();
+  }));
+  state.unsubs.push(onSnapshot(collection(db, 'distritais'), snap => {
+    state.distritais = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    setupAtividadesListener();
+    scheduleRender();
+  }));
+  state.unsubs.push(onSnapshot(collection(db, 'igrejas'), snap => {
+    state.igrejas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    scheduleRender();
+  }));
+  let qDir;
+  if (u.role === 'distrital'){
+    qDir = query(collection(db, 'diretores'), where('districtId', '==', u.escopo));
+  } else if (u.role === 'regional'){
+    qDir = query(collection(db, 'diretores'), where('regionalId', '==', u.escopo));
+  } else {
+    qDir = collection(db, 'diretores');
+  }
+  state.unsubs.push(onSnapshot(qDir, snap => {
+    state.diretores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    scheduleRender();
+  }));
+  setupAtividadesListener();
+  if (u.role === 'distrital'){
+    state.unsubs.push(onSnapshot(
+      query(collection(db, 'atividades'),
+            where('districtId', '==', u.escopo),
+            where('status', '==', 'pendente')),
+      snap => {
+        state.pendingCount = snap.size;
+        scheduleRender();
+      }
+    ));
+  }
+}
+
+/* ===================== 8. RENDER ===================== */
+let renderScheduled = false;
+function scheduleRender(){
+  if (renderScheduled) return;
+  renderScheduled = true;
+  requestAnimationFrame(() => {
+    renderScheduled = false;
+    if (isTyping()) return;
+    render();
+  });
+}
+function isTyping(){
+  const el = document.activeElement;
+  if (!el) return false;
+  const tag = el.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+}
+function render(){
+  const appEl = document.getElementById('app');
+  if (state.loading){
+    appEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;
+      min-height:100vh;text-align:center">
+      <div><div style="font-size:56px">⛪</div>
+      <p style="margin-top:12px;color:#6b7785">Carregando...</p></div></div>`;
+    return;
+  }
+  if (!state.user){ appEl.innerHTML = renderLogin(); return; }
+  if (state.needsBootstrap){ appEl.innerHTML = renderBootstrap(); return; }
+  appEl.innerHTML = renderApp();
+}
+function renderLogin(){
+  return `
+    <div class="login-screen">
+      <div class="login-card">
+        <div class="login-logo">⛪</div>
+        <h1>Jovens IASD</h1>
+        <p>Sistema de Monitoramento de Ações</p>
+        <form onsubmit="handleLogin(event)">
+          <label>E-mail</label>
+          <input type="email" id="loginEmail" required placeholder="voce@exemplo.com" autocomplete="username">
+          <label>Senha</label>
+          <input type="password" id="loginPass" required autocomplete="current-password">
+          <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+        </form>
+        <div style="text-align:center;margin-top:12px">
+          <a href="#" onclick="handleResetPassword();return false"
+             style="font-size:12px;color:var(--primary)">Esqueci minha senha</a>
+        </div>
+        <div class="login-hint">
+          <strong>Primeiro acesso?</strong> Se for o primeiro usuário cadastrado no Firebase Auth,
+          você vira automaticamente <strong>Direção Macro</strong> e pode popular o sistema.
+        </div>
+      </div>
+    </div>`;
+}
+function renderBootstrap(){
+  return `
+    <div class="login-screen">
+      <div class="login-card">
+        <div class="login-logo">🚀</div>
+        <h1>Configuração inicial</h1>
+        <p>Você é o primeiro usuário. Vamos configurar como <strong>Direção Macro</strong>.</p>
+        <form onsubmit="confirmarBootstrap(event)">
+          <label>Seu nome completo</label>
+          <input type="text" id="bootName" required placeholder="Ex: Pr. João Silva">
+          <button type="submit" class="btn btn-primary btn-block">Criar perfil de Macro</button>
+        </form>
+      </div>
+    </div>`;
+}
+function renderApp(){
+  const u = state.user;
+  const nav = getNav(u.role);
+  return `
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-icon">⛪</span>
+          <div>
+            <div class="brand-title">Jovens IASD</div>
+            <div class="brand-sub">Monitoramento</div>
+          </div>
+        </div>
+        <nav>
+          ${nav.map(n => {
+            const badge = (n.view === 'validations' && state.pendingCount > 0)
+              ? `<span class="nav-badge">${state.pendingCount}</span>` : '';
+            return `
+              <a class="nav-item ${state.view === n.view ? 'active' : ''}"
+                 data-action="nav" data-view="${n.view}">
+                <span class="nav-icon">${n.icon}</span> ${n.label} ${badge}
+              </a>`;
+          }).join('')}
+        </nav>
+        <div class="sidebar-footer">
+          <div class="user-badge">
+            <div class="user-avatar">${(u.name||'?').charAt(0).toUpperCase()}</div>
+            <div style="flex:1;min-width:0">
+              <div class="user-name">${u.name}</div>
+              <div class="user-role">${roleLabel(u.role)}</div>
+            </div>
+          </div>
+          ${u.role === 'macro' ? `
+            <button class="btn btn-primary btn-block btn-sm" data-action="open-admin"
+                    style="margin-bottom:8px;background:var(--accent);color:#fff">
+              ⚙️ Administração</button>
+            <button class="btn btn-ghost btn-block btn-sm" data-action="seed"
+                    style="margin-bottom:8px">🌱 Popular demo</button>` : ''}
+          <button class="btn btn-ghost btn-block btn-sm" data-action="logout">Sair</button>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="topbar">
+          <h1>${viewTitle(state.view)}</h1>
+          <div class="muted" style="font-size:12px">
+            <span class="online-dot"></span>Sincronização em tempo real ativa
+          </div>
+        </div>
+        <div class="content">${renderView()}</div>
+      </main>
+    </div>
+    ${state.modal ? renderModal() : ''}
+    ${state.adminOpen ? renderAdminModal() : ''}
+  `;
+}
+function getNav(role){
+  const items = [
+    {view:'dashboard',    label:'Dashboard',      icon:'📊', roles:['macro','regional','distrital','diretor']},
+    {view:'activities',   label:'Atividades',     icon:'📋', roles:['macro','regional','distrital','diretor']},
+    {view:'new-activity', label:'Nova Atividade', icon:'➕', roles:['diretor']},
+    {view:'validations',  label:'Validações',     icon:'✅', roles:['distrital']},
+    {view:'ranking',      label:'Ranking',        icon:'🏆', roles:['macro','regional','distrital','diretor']},
+    {view:'directors',    label:'Diretores',      icon:'👥', roles:['distrital','regional','macro']},
+    {view:'churches',     label:'Igrejas',        icon:'⛪', roles:['distrital','regional','macro']},
+    {view:'monitoring',   label:'Monitoramento',  icon:'🗺️', roles:['macro','regional']}
+  ];
+  return items.filter(i => i.roles.includes(role));
+}
+function viewTitle(view){
+  const m = {dashboard:'Dashboard', activities:'Atividades', 'new-activity':'Nova Atividade',
+    validations:'Validações Pendentes', ranking:'Ranking de Igrejas',
+    directors:'Diretores', churches:'Igrejas', monitoring:'Monitoramento por Regional'};
+  return m[view] || view;
+}
+function renderView(){
+  switch(state.view){
+    case 'dashboard':    return renderDashboard();
+    case 'activities':   return renderActivities();
+    case 'new-activity': return renderNewActivity();
+    case 'validations':  return renderValidations();
+    case 'ranking':      return renderRanking();
+    case 'directors':    return renderDirectors();
+    case 'churches':     return renderChurches();
+    case 'monitoring':   return renderMonitoring();
+    default: return `<div class="empty">Tela não encontrada.</div>`;
+  }
+}
+
+/* ---------- DASHBOARD ---------- */
+function renderDashboard(){
+  const u = state.user;
+  const churches = scopeChurches(u);
+  const acts = scopeActivities(u);
+  const validated = acts.filter(a => a.status === 'validado');
+  const pending   = acts.filter(a => a.status === 'pendente');
+  const rejected  = acts.filter(a => a.status === 'rejeitado');
+  const overdue   = pending.filter(isOverdue);
+  const totalPoints = validated.reduce((s,a) => s + activityPoints(a), 0);
+  const byType = {
+    maranata:   acts.filter(a => a.type === 'maranata').length,
+    comunidade: acts.filter(a => a.type === 'comunidade').length,
+    outside:    acts.filter(a => a.type === 'outside').length
+  };
+  const maxBar = Math.max(1, byType.maranata, byType.comunidade, byType.outside);
+  const rank = ranking(churches).slice(0,5);
+  return `
+    ${overdue.length > 0 && (u.role === 'regional' || u.role === 'macro') ? `
+      <div class="alert alert-danger">
+        <span style="font-size:22px">⚠️</span>
+        <div>
+          <strong>${overdue.length} atividade(s) com prazo de validação vencido.</strong>
+          <div class="muted" style="font-size:12px;margin-top:4px">
+            Distritais precisam validar ou rejeitar. Ação necessária.
+          </div>
+        </div>
+      </div>` : ''}
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-label">Igrejas no escopo</div>
+        <div class="stat-value">${churches.length}</div>
+        <div class="stat-sub">${u.role==='diretor' ? 'Sua igreja' : 'Sob sua responsabilidade'}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Atividades registradas</div>
+        <div class="stat-value">${acts.length}</div>
+        <div class="stat-sub">${validated.length} validadas · ${pending.length} pendentes</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Pontuação total</div>
+        <div class="stat-value">${totalPoints}</div>
+        <div class="stat-sub">Somatório das validadas</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Rejeitadas</div>
+        <div class="stat-value" style="color:${rejected.length?'var(--danger)':'var(--primary)'}">${rejected.length}</div>
+        <div class="stat-sub">Precisam de correção</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <h2>Distribuição por tipo</h2>
+        <div class="bar-row">
+          <div class="bar-label">Maranata Class</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(byType.maranata/maxBar)*100}%"></div></div>
+          <div class="bar-value">${byType.maranata}</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Comunidade Jovem</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(byType.comunidade/maxBar)*100}%"></div></div>
+          <div class="bar-value">${byType.comunidade}</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Outside</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(byType.outside/maxBar)*100}%"></div></div>
+          <div class="bar-value">${byType.outside}</div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>🏆 Top 5 igrejas</h2>
+        ${rank.length === 0 ? `<div class="empty">Sem dados ainda.</div>` :
+          rank.map((c,i) => `
+            <div class="rank-item">
+              <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}º</div>
+              <div class="rank-info">
+                <div class="rank-name">${c.name}</div>
+                <div class="rank-detail">${c.validated} validadas · ${c.pending} pendentes</div>
+              </div>
+              <div class="rank-points">${c.points}</div>
+            </div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <h2>Últimas atividades</h2>
+      ${acts.length === 0 ? `<div class="empty"><div class="empty-icon">📭</div>
+        Nenhuma atividade registrada ainda.</div>` : `
+        <table>
+          <thead><tr><th>Data</th><th>Tipo</th><th>Igreja</th><th>Diretor</th>
+            <th>Status</th><th>Prazo</th><th></th></tr></thead>
+          <tbody>
+            ${acts.slice().sort((a,b) => (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0))
+                 .slice(0,8).map(a => `
+              <tr class="${isOverdue(a)?'overdue':''}">
+                <td>${fmtDate(a.date)}</td>
+                <td><span class="badge badge-info">${typeLabel(a.type)}</span></td>
+                <td>${churchName(a.churchId)}</td>
+                <td>${directorName(a.directorId)}</td>
+                <td>${statusBadge(a.status)}</td>
+                <td>${a.status==='pendente' ?
+                     `<span style="color:${isOverdue(a)?'var(--danger)':'var(--muted)'};font-size:12px">
+                       ${fmtDate(a.deadline)}${isOverdue(a)?' ⚠️':''}</span>` : '—'}</td>
+                <td><button class="btn btn-outline btn-sm" data-action="view-activity"
+                     data-id="${a.id}">Ver</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`}
+    </div>`;
+}
+
+/* ---------- ATIVIDADES ---------- */
+function renderActivities(){
+  const u = state.user;
+  let acts = scopeActivities(u);
+  if (state.filterType !== 'all') acts = acts.filter(a => a.type === state.filterType);
+  if (state.filterStatus !== 'all') acts = acts.filter(a => a.status === state.filterStatus);
+  acts = acts.sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+  return `
+    <div class="card">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px">
+        <div class="form-group" style="margin:0;min-width:180px">
+          <label>Tipo</label>
+          <select onchange="state.filterType=this.value;render()">
+            <option value="all">Todos</option>
+            <option value="maranata" ${state.filterType==='maranata'?'selected':''}>Maranata Class</option>
+            <option value="comunidade" ${state.filterType==='comunidade'?'selected':''}>Comunidade Jovem</option>
+            <option value="outside" ${state.filterType==='outside'?'selected':''}>Outside</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0;min-width:180px">
+          <label>Status</label>
+          <select onchange="state.filterStatus=this.value;render()">
+            <option value="all">Todos</option>
+            <option value="pendente" ${state.filterStatus==='pendente'?'selected':''}>Pendente</option>
+            <option value="validado" ${state.filterStatus==='validado'?'selected':''}>Validado</option>
+            <option value="rejeitado" ${state.filterStatus==='rejeitado'?'selected':''}>Rejeitado</option>
+          </select>
+        </div>
+        ${u.role === 'diretor' ? `<button class="btn btn-primary" data-action="nav"
+          data-view="new-activity">➕ Nova Atividade</button>` : ''}
+      </div>
+      ${acts.length === 0 ? `<div class="empty"><div class="empty-icon">📭</div>
+        Nenhuma atividade encontrada.</div>` : `
+        <table>
+          <thead><tr><th>Data</th><th>Tipo</th><th>Igreja</th><th>Diretor</th>
+            <th>Status</th><th>Prazo</th><th></th></tr></thead>
+          <tbody>
+            ${acts.map(a => `
+              <tr class="${isOverdue(a)?'overdue':''}">
+                <td>${fmtDate(a.date)}</td>
+                <td><span class="badge badge-info">${typeLabel(a.type)}</span></td>
+                <td>${churchName(a.churchId)}</td>
+                <td>${directorName(a.directorId)}</td>
+                <td>${statusBadge(a.status)}</td>
+                <td>${a.status==='pendente' ?
+                     `<span style="color:${isOverdue(a)?'var(--danger)':'var(--muted)'};font-size:12px">
+                       ${fmtDate(a.deadline)}${isOverdue(a)?' ⚠️':''}</span>` : '—'}</td>
+                <td><button class="btn btn-outline btn-sm" data-action="view-activity"
+                     data-id="${a.id}">Ver</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`}
+    </div>`;
+}
+
+/* ---------- NOVA ATIVIDADE ---------- */
+function renderNewActivity(){
+  return `
+    <div class="card" style="max-width:820px">
+      <h2>Registrar nova atividade</h2>
+      <form id="activityForm" onsubmit="submitActivity(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo de ação *</label>
+            <select id="actType" onchange="onTypeChange()" required>
+              <option value="">Selecione...</option>
+              <option value="maranata">Maranata Class</option>
+              <option value="comunidade">Comunidade Jovem</option>
+              <option value="outside">Outside (Evento)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Data *</label>
+            <input type="date" id="actDate" value="${today()}" required>
+          </div>
+        </div>
+        <div id="typeFields"></div>
+        <div class="form-group">
+          <label>Comprovação (fotos) *</label>
+          <input type="file" id="actFiles" accept="image/*" multiple onchange="previewFiles(event)">
+          <div class="hint">Anexe fotos que comprovem a realização. Elas são redimensionadas e enviadas ao ImgBB automaticamente.</div>
+          <div class="file-preview" id="filePreview"></div>
+        </div>
+        <div class="form-group">
+          <label>Observações</label>
+          <textarea id="actNotes" rows="3" placeholder="Informações adicionais para o distrital..."></textarea>
+        </div>
+        <div class="alert alert-info" style="font-size:12px">
+          <span>ℹ️</span>
+          <div>Após enviar, o <strong>distrital</strong> terá <strong>${DEADLINE_DAYS} dias</strong> para validar.
+          Todos os aparelhos conectados receberão a atualização automaticamente.</div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="actSubmit">Enviar para validação</button>
+      </form>
+    </div>`;
+}
+function onTypeChange(){
+  const t = document.getElementById('actType').value;
+  const c = document.getElementById('typeFields');
+  if (t === 'outside'){
+    c.innerHTML = `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome do evento *</label>
+          <input type="text" id="eventName" required placeholder="Ex: Retiro de jovens">
+        </div>
+        <div class="form-group">
+          <label>Evento realizado? *</label>
+          <label class="check-item" style="margin-top:6px">
+            <input type="checkbox" id="eventoRealizado" required> Sim, o evento aconteceu
+          </label>
+        </div>
+      </div>`;
+  } else if (t === 'maranata' || t === 'comunidade'){
+    c.innerHTML = `
+      <div class="checks">
+        <label class="check-item"><input type="checkbox" id="realizado"> Ação realizada</label>
+        <label class="check-item"><input type="checkbox" id="missionario"> Teve momento missionário</label>
+        <label class="check-item"><input type="checkbox" id="licao7"> Estudaram a lição 7 dias</label>
+        <label class="check-item"><input type="checkbox" id="visitas"> Teve visitas</label>
+      </div>`;
+  } else c.innerHTML = '';
+}
+function previewFiles(e){
+  const cont = document.getElementById('filePreview');
+  cont.innerHTML = '';
+  for (const f of e.target.files){
+    if (f.type.startsWith('image/')){
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(f);
+      cont.appendChild(img);
+    }
+  }
+}
+async function compressImage(file, maxW = 1280, quality = 0.78){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW){ h = Math.round(h * maxW / w); w = maxW; }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        c.toBlob(blob => resolve(blob), 'image/jpeg', quality);
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ===================== IMGBB UPLOAD ===================== */
+async function uploadImagemParaImgBB(blob, nome) {
+  const formData = new FormData();
+  formData.append('image', blob, nome);
+  formData.append('key', IMGBB_API_KEY);
+
+  const response = await fetch('https://api.imgbb.com/1/upload', {
+    method: 'POST',
+    body: formData
+  });
+
+  if (!response.ok) {
+    const erro = await response.text();
+    throw new Error('Falha no upload ImgBB: ' + erro);
+  }
+
+  const data = await response.json();
+  if (!data.success) {
+    throw new Error('ImgBB retornou erro: ' + JSON.stringify(data.error));
+  }
+  return data.data.url;
+}
+
+async function submitActivity(e){
+  e.preventDefault();
+  const u = state.user;
+  if (!u.churchId || !u.diretorId){
+    return alert('Perfil incompleto. Contate seu distrital para finalizar o cadastro.');
+  }
+  const btn = document.getElementById('actSubmit');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    const type  = document.getElementById('actType').value;
+    const date  = document.getElementById('actDate').value;
+    const notes = document.getElementById('actNotes').value;
+    const activity = {
+      type, date, notes,
+      churchId: u.churchId,
+      directorId: u.diretorId,
+      districtId: u.districtId,
+      regionalId: u.regionalId,
+      status: 'pendente',
+      deadline: new Date(Date.now() + DEADLINE_DAYS*24*60*60*1000).toISOString(),
+      createdAt: serverTimestamp(),
+      createdBy: u.uid,
+      photos: [],
+      history: [{ at: new Date().toISOString(), who: u.uid, action: 'criado' }]
+    };
+    if (type === 'outside'){
+      activity.eventoRealizado = document.getElementById('eventoRealizado').checked;
+      activity.eventName = document.getElementById('eventName').value;
+    } else {
+      activity.realizado   = document.getElementById('realizado').checked;
+      activity.missionario = document.getElementById('missionario').checked;
+      activity.licao7      = document.getElementById('licao7').checked;
+      activity.visitas     = document.getElementById('visitas').checked;
+    }
+    const files = document.getElementById('actFiles').files;
+    for (let i = 0; i < files.length; i++){
+      const f = files[i];
+      btn.textContent = `Enviando ${i+1}/${files.length}...`;
+      const blob = await compressImage(f);
+      const url = await uploadImagemParaImgBB(blob, f.name);
+      activity.photos.push({ kind:'image', url, name:f.name });
+    }
+    if (activity.photos.length === 0 &&
+        !confirm('Nenhuma comprovação anexada. Enviar mesmo assim?')){
+      btn.disabled = false; btn.textContent = 'Enviar para validação';
+      return;
+    }
+    await addDoc(collection(db, 'atividades'), activity);
+    alert('✅ Atividade enviada! O distrital foi notificado em tempo real.');
+    state.view = 'activities';
+    render();
+  } catch(err){
+    console.error(err);
+    alert('Erro ao enviar: ' + err.message);
+    btn.disabled = false; btn.textContent = 'Enviar para validação';
+  }
+}
+
+/* ---------- VALIDAÇÕES ---------- */
+function renderValidations(){
+  const u = state.user;
+  const pend = state.activities
+    .filter(a => a.districtId === u.escopo && a.status === 'pendente')
+    .sort((a,b) => new Date(a.deadline) - new Date(b.deadline));
+  return `
+    <div class="card">
+      <h2>⏳ ${pend.length} atividade(s) aguardando validação</h2>
+      ${pend.length === 0 ? `<div class="empty"><div class="empty-icon">🎉</div>
+        Nada pendente. Bom trabalho!</div>` : `
+        <table>
+          <thead><tr><th>Data</th><th>Tipo</th><th>Igreja</th><th>Diretor</th>
+            <th>Prazo</th><th></th></tr></thead>
+          <tbody>
+            ${pend.map(a => `
+              <tr class="${isOverdue(a)?'overdue':''}">
+                <td>${fmtDate(a.date)}</td>
+                <td><span class="badge badge-info">${typeLabel(a.type)}</span></td>
+                <td>${churchName(a.churchId)}</td>
+                <td>${directorName(a.directorId)}</td>
+                <td>
+                  <span style="color:${isOverdue(a)?'var(--danger)':'var(--muted)'};font-size:12px">
+                    ${fmtDate(a.deadline)}${isOverdue(a)?' ⚠️ vencido':''}
+                  </span>
+                </td>
+                <td><button class="btn btn-primary btn-sm" data-action="view-activity"
+                     data-id="${a.id}">Analisar</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`}
+    </div>`;
+}
+
+/* ---------- RANKING ---------- */
+function renderRanking(){
+  const churches = scopeChurches(state.user);
+  const rk = ranking(churches);
+  return `
+    <div class="card">
+      <h2>🏆 Ranking de Igrejas</h2>
+      <p class="muted" style="margin-bottom:16px">
+        Pontuação baseada em atividades <strong>validadas</strong>.
+        Maranata/Comunidade = 50 base + 15 (missionário) + 15 (lição 7d) + 20 (visitas). Outside = 60.
+      </p>
+      ${rk.length === 0 ? `<div class="empty">Sem igrejas no escopo.</div>` :
+        rk.map((c,i) => `
+          <div class="rank-item">
+            <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}º</div>
+            <div class="rank-info">
+              <div class="rank-name">${c.name}</div>
+              <div class="rank-detail">
+                ✅ ${c.validated} validadas · ⏳ ${c.pending} pendentes · ❌ ${c.rejected} rejeitadas ·
+                ${c.maranata}M / ${c.comunidade}C / ${c.outside}O
+              </div>
+            </div>
+            <div class="rank-points">${c.points}</div>
+          </div>`).join('')}
+    </div>`;
+}
+
+/* ---------- DIRETORES ---------- */
+function renderDirectors(){
+  const u = state.user;
+  let list = state.diretores;
+  if (u.role === 'distrital') list = list.filter(d => d.districtId === u.escopo);
+  else if (u.role === 'regional') list = list.filter(d => d.regionalId === u.escopo);
+  const canAdd = u.role === 'distrital';
+  return `
+    ${canAdd ? `
+    <div class="card">
+      <h2>➕ Cadastrar novo diretor</h2>
+      <p class="muted" style="margin-bottom:16px;font-size:13px">
+        Será criada automaticamente uma conta de acesso com o e-mail informado.
+        A senha inicial é <strong>123456</strong> — o diretor poderá alterá-la depois.
+      </p>
+      <form onsubmit="submitDirector(event)">
+        <div class="form-row">
+          <div class="form-group"><label>Nome completo *</label>
+            <input type="text" id="dName" required></div>
+          <div class="form-group"><label>CPF *</label>
+            <input type="text" id="dCpf" required placeholder="000.000.000-00"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Telefone *</label>
+            <input type="text" id="dPhone" required placeholder="(11) 99999-9999"></div>
+          <div class="form-group"><label>Tamanho da camisa *</label>
+            <select id="dShirt" required>
+              <option value="">Selecione...</option>
+              <option>PP</option><option>P</option><option>M</option>
+              <option>G</option><option>GG</option><option>XGG</option>
+            </select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Igreja *</label>
+            <select id="dChurch" required>
+              <option value="">Selecione...</option>
+              ${state.igrejas.filter(i => i.districtId === u.escopo).map(i =>
+                `<option value="${i.id}">${i.name}</option>`).join('')}
+            </select></div>
+          <div class="form-group"><label>E-mail de acesso *</label>
+            <input type="email" id="dEmail" required placeholder="diretor@exemplo.com"></div>
+        </div>
+        <button class="btn btn-primary" type="submit" id="dSubmit">Cadastrar diretor</button>
+      </form>
+    </div>` : ''}
+    <div class="card">
+      <h2>👥 ${list.length} diretor(es)</h2>
+      ${list.length === 0 ? `<div class="empty">Nenhum diretor cadastrado.</div>` : `
+        <table>
+          <thead><tr><th>Nome</th><th>CPF</th><th>Telefone</th><th>Camisa</th>
+            <th>Igreja</th><th>E-mail</th></tr></thead>
+          <tbody>
+            ${list.map(d => `
+              <tr>
+                <td>${d.name}</td>
+                <td>${d.cpf}</td>
+                <td>${d.phone}</td>
+                <td><span class="badge badge-info">${d.shirtSize}</span></td>
+                <td>${churchName(d.churchId)}</td>
+                <td><code style="font-size:12px">${d.email || '—'}</code></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`}
+    </div>`;
+}
+async function submitDirector(e){
+  e.preventDefault();
+  const u = state.user;
+  const btn = document.getElementById('dSubmit');
+  btn.disabled = true; btn.textContent = 'Criando conta...';
+  const email = document.getElementById('dEmail').value.trim();
+  const churchId = document.getElementById('dChurch').value;
+  const district = state.distritais.find(d => d.id === u.escopo);
+  const regionalId = district?.regionalId;
+  try {
+    const secondary = initializeApp(firebaseConfig, 'Secondary' + Date.now());
+    const secAuth = getAuth(secondary);
+    let cred;
+    try {
+      cred = await createUserWithEmailAndPassword(secAuth, email, '123456');
+    } finally {
+      await deleteApp(secondary);
+    }
+    const diretorId = uid();
+    const diretorData = {
+      name: document.getElementById('dName').value.trim(),
+      cpf: document.getElementById('dCpf').value.trim(),
+      phone: document.getElementById('dPhone').value.trim(),
+      shirtSize: document.getElementById('dShirt').value,
+      churchId, districtId: u.escopo, regionalId,
+      email, username: email,
+      uid: cred.user.uid,
+      createdAt: serverTimestamp(),
+      createdBy: u.uid
+    };
+    await setDoc(doc(db, 'diretores', diretorId), diretorData);
+    await setDoc(doc(db, 'usuarios', cred.user.uid), {
+      name: diretorData.name, email, role: 'diretor', active: true,
+      escopo: churchId,
+      churchId, districtId: u.escopo, regionalId,
+      diretorId,
+      createdAt: serverTimestamp()
+    });
+    alert(`✅ Diretor cadastrado!\nE-mail: ${email}\nSenha inicial: 123456`);
+    render();
+  } catch(err){
+    console.error(err);
+    alert('Erro ao cadastrar: ' + err.message);
+    btn.disabled = false; btn.textContent = 'Cadastrar diretor';
+  }
+}
+
+/* ---------- IGREJAS ---------- */
+function renderChurches(){
+  const u = state.user;
+  let list = state.igrejas;
+  if (u.role === 'distrital') list = list.filter(i => i.districtId === u.escopo);
+  else if (u.role === 'regional'){
+    const distsIds = state.distritais.filter(d => d.regionalId === u.escopo).map(d => d.id);
+    list = list.filter(i => distsIds.includes(i.districtId));
+  }
+  const canAdd = u.role === 'distrital';
+  return `
+    ${canAdd ? `
+    <div class="card">
+      <h2>➕ Cadastrar nova igreja</h2>
+      <form onsubmit="submitChurch(event)">
+        <div class="form-row">
+          <div class="form-group"><label>Nome da igreja *</label>
+            <input type="text" id="cName" required placeholder="Ex: IASD Central"></div>
+          <div class="form-group" style="align-self:end">
+            <button class="btn btn-primary" type="submit" id="cSubmit">Cadastrar igreja</button>
+          </div>
+        </div>
+      </form>
+    </div>` : ''}
+    <div class="card">
+      <h2>⛪ ${list.length} igreja(s)</h2>
+      ${list.length === 0 ? `<div class="empty">Nenhuma igreja cadastrada.</div>` : `
+        <table>
+          <thead><tr><th>Igreja</th><th>Distrito</th><th>Diretores</th>
+            <th>Pontos</th><th>Validadas</th></tr></thead>
+          <tbody>
+            ${list.map(i => {
+              const dirs = state.diretores.filter(d => d.churchId === i.id).length;
+              const st = churchStats(i.id);
+              const dist = state.distritais.find(d => d.id === i.districtId);
+              return `<tr>
+                <td><strong>${i.name}</strong></td>
+                <td>${dist ? dist.name : '—'}</td>
+                <td>${dirs}</td>
+                <td><span class="badge badge-info">${st.points}</span></td>
+                <td>${st.validated}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`}
+    </div>`;
+}
+async function submitChurch(e){
+  e.preventDefault();
+  const u = state.user;
+  const btn = document.getElementById('cSubmit');
+  btn.disabled = true;
+  try {
+    const district = state.distritais.find(d => d.id === u.escopo);
+    await addDoc(collection(db, 'igrejas'), {
+      name: document.getElementById('cName').value.trim(),
+      districtId: u.escopo,
+      regionalId: district?.regionalId,
+      createdAt: serverTimestamp()
+    });
+    alert('✅ Igreja cadastrada!');
+    render();
+  } catch(err){
+    alert('Erro: ' + err.message);
+    btn.disabled = false;
+  }
+}
+
+/* ---------- MONITORAMENTO ---------- */
+function renderMonitoring(){
+  const u = state.user;
+  let regionais = state.regionais;
+  if (u.role === 'regional') regionais = regionais.filter(r => r.id === u.escopo);
+  return regionais.map(r => {
+    const dists = state.distritais.filter(d => d.regionalId === r.id);
+    const distsIds = dists.map(d => d.id);
+    const chs = state.igrejas.filter(i => distsIds.includes(i.districtId)).map(i => i.id);
+    const acts = state.activities.filter(a => chs.includes(a.churchId));
+    const validated = acts.filter(a => a.status === 'validado');
+    const pending   = acts.filter(a => a.status === 'pendente');
+    const overdue   = pending.filter(isOverdue);
+    const points = validated.reduce((s,a) => s + activityPoints(a), 0);
+    return `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <h2 style="margin:0">🗺️ ${r.name}</h2>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge badge-info">${points} pts</span>
+            <span class="badge badge-success">${validated.length} validadas</span>
+            <span class="badge badge-warning">${pending.length} pendentes</span>
+            ${overdue.length ? `<span class="badge badge-danger">${overdue.length} vencidas</span>` : ''}
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Distrito</th><th>Distrital</th><th>Igrejas</th>
+            <th>Pontos</th><th>Validadas</th><th>Pendentes</th><th>Vencidas</th></tr></thead>
+          <tbody>
+            ${dists.map(d => {
+              const dch = state.igrejas.filter(i => i.districtId === d.id).map(i => i.id);
+              const dacts = state.activities.filter(a => dch.includes(a.churchId));
+              const dval = dacts.filter(a => a.status === 'validado');
+              const dpen = dacts.filter(a => a.status === 'pendente');
+              const dlate = dpen.filter(isOverdue);
+              const dpts = dval.reduce((s,a) => s + activityPoints(a), 0);
+              return `<tr class="${dlate.length?'overdue':''}">
+                <td><strong>${d.name}</strong></td>
+                <td>${d.username || '—'}</td>
+                <td>${dch.length}</td>
+                <td><span class="badge badge-info">${dpts}</span></td>
+                <td>${dval.length}</td>
+                <td>${dpen.length}</td>
+                <td>${dlate.length ? `<span class="badge badge-danger">${dlate.length}</span>` : '0'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }).join('');
+}
+
+/* ---------- MODAL DE ATIVIDADE ---------- */
+function renderModal(){
+  const a = state.modal;
+  const u = state.user;
+  const canValidate = u.role === 'distrital' && a.districtId === u.escopo && a.status === 'pendente';
+  const canResend   = u.role === 'diretor' && a.directorId === u.diretorId && a.status === 'rejeitado';
+  let criterios = '';
+  if (a.type === 'outside'){
+    criterios = `
+      <div class="detail-row"><span class="lbl">Evento</span><span class="val">${a.eventName || '—'}</span></div>
+      <div class="detail-row"><span class="lbl">Realizado</span><span class="val">${a.eventoRealizado ? '✅ Sim' : '❌ Não'}</span></div>`;
+  } else {
+    criterios = `
+      <div class="detail-row"><span class="lbl">Ação realizada</span><span class="val">${a.realizado ? '✅' : '❌'}</span></div>
+      <div class="detail-row"><span class="lbl">Momento missionário</span><span class="val">${a.missionario ? '✅' : '❌'}</span></div>
+      <div class="detail-row"><span class="lbl">Lição 7 dias</span><span class="val">${a.licao7 ? '✅' : '❌'}</span></div>
+      <div class="detail-row"><span class="lbl">Visitas</span><span class="val">${a.visitas ? '✅' : '❌'}</span></div>`;
+  }
+  return `
+    <div class="modal-overlay" data-action="close-modal">
+      <div class="modal">
+        <span class="modal-close" data-action="close-modal">✕</span>
+        <h2>Detalhes da Atividade</h2>
+        <div class="detail-row"><span class="lbl">Tipo</span><span class="val">${typeLabel(a.type)}</span></div>
+        <div class="detail-row"><span class="lbl">Data</span><span class="val">${fmtDate(a.date)}</span></div>
+        <div class="detail-row"><span class="lbl">Igreja</span><span class="val">${churchName(a.churchId)}</span></div>
+        <div class="detail-row"><span class="lbl">Diretor</span><span class="val">${directorName(a.directorId)}</span></div>
+        <div class="detail-row"><span class="lbl">Status</span><span class="val">${statusBadge(a.status)}</span></div>
+        ${a.status === 'pendente' ?
+          `<div class="detail-row"><span class="lbl">Prazo de validação</span>
+            <span class="val" style="color:${isOverdue(a)?'var(--danger)':'inherit'}">
+              ${fmtDate(a.deadline)}${isOverdue(a)?' ⚠️ vencido':''}</span></div>` : ''}
+        ${criterios}
+        ${a.notes ? `<div style="margin-top:14px"><strong>Observações:</strong>
+          <p class="muted" style="margin-top:4px">${a.notes}</p></div>` : ''}
+        ${a.validationNotes ? `
+          <div class="alert alert-${a.status === 'rejeitado' ? 'danger' : 'info'}" style="margin-top:14px">
+            <span>${a.status === 'rejeitado' ? '❌' : 'ℹ️'}</span>
+            <div>
+              <strong>${a.status === 'rejeitado' ? 'Motivo da rejeição:' : 'Observação do distrital:'}</strong>
+              <div style="margin-top:4px">${a.validationNotes}</div>
+            </div>
+          </div>` : ''}
+        <h3 style="margin-top:20px;margin-bottom:8px;color:var(--primary);font-size:14px">Comprovações</h3>
+        ${(a.photos||[]).length === 0 ? `<p class="muted">Nenhum arquivo anexado.</p>` : `
+          <div class="photo-grid">
+            ${a.photos.map(p => `<img src="${p.url}" onclick="window.open('${p.url}','_blank')">`).join('')}
+          </div>`}
+        ${a.history && a.history.length ? `
+          <h3 style="margin-top:20px;margin-bottom:8px;color:var(--primary);font-size:14px">Histórico</h3>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8">
+            ${a.history.map(h => `• ${h.action} — ${fmtDateTime(h.at)}`).join('<br>')}
+          </div>` : ''}
+        ${canValidate ? `
+          <div style="margin-top:22px">
+            <label style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">
+              Observação (obrigatória para rejeição) *
+            </label>
+            <textarea id="valNotes" rows="2" placeholder="Se rejeitar, descreva o motivo (mínimo 10 caracteres)..."
+              style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></textarea>
+            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+              <button class="btn btn-success" onclick="validateActivity('${a.id}','validado')">✅ Validar</button>
+              <button class="btn btn-danger" onclick="validateActivity('${a.id}','rejeitado')">❌ Rejeitar</button>
+            </div>
+          </div>` : ''}
+        ${canResend ? `
+          <div style="margin-top:22px">
+            <div class="alert alert-warning" style="font-size:13px">
+              <span>⚠️</span>
+              <div>Esta atividade foi rejeitada. Corrija o problema e reenvie para validação.</div>
+            </div>
+            <button class="btn btn-warning" onclick="reenviarAtividade('${a.id}')">
+              🔄 Corrigir e reenviar
+            </button>
+          </div>` : ''}
+      </div>
+    </div>`;
+}
+async function validateActivity(id, newStatus){
+  const a = state.activities.find(x => x.id === id);
+  if (!a) return;
+  const notes = (document.getElementById('valNotes')?.value || '').trim();
+  if (newStatus === 'rejeitado' && notes.length < 10){
+    alert('⚠️ Para rejeitar, descreva o motivo (mínimo 10 caracteres).');
+    return;
+  }
+  try {
+    await updateDoc(doc(db, 'atividades', id), {
+      status: newStatus,
+      validationNotes: notes,
+      validatedBy: state.user.uid,
+      validatedAt: serverTimestamp(),
+      history: arrayUnion({ at: new Date().toISOString(), who: state.user.uid, action: newStatus, notes })
+    });
+    state.modal = null;
+    render();
+  } catch(err){ alert('Erro: ' + err.message); }
+}
+async function reenviarAtividade(id){
+  if (!confirm('Confirma que corrigiu o problema e deseja reenviar para validação?')) return;
+  try {
+    await updateDoc(doc(db, 'atividades', id), {
+      status: 'pendente',
+      validationNotes: '',
+      deadline: new Date(Date.now() + DEADLINE_DAYS*24*60*60*1000).toISOString(),
+      reenviadoEm: serverTimestamp(),
+      history: arrayUnion({ at: new Date().toISOString(), who: state.user.uid, action: 'reenviado' })
+    });
+    state.modal = null;
+    alert('✅ Atividade reenviada para validação.');
+    render();
+  } catch(err){ alert('Erro: ' + err.message); }
+}
+
+/* =====================================================================
+   9. TELA DE ADMINISTRAÇÃO (MODAL)
+===================================================================== */
+function renderAdminModal(){
+  const tab = state.adminTab;
+  return `
+    <div class="modal-overlay" data-action="close-admin">
+      <div class="admin-modal">
+        <div class="admin-header">
+          <h2>⚙️ Administração</h2>
+          <span class="close-x" data-action="close-admin-x">✕</span>
+        </div>
+        <div class="admin-tabs">
+          ${[
+            ['regionais','🗺️ Regionais'],
+            ['distritos','🏘️ Distritos'],
+            ['igrejas','⛪ Igrejas'],
+            ['usuarios','👥 Usuários'],
+            ['diretores','👤 Diretores'],
+            ['ferramentas','🛠️ Ferramentas']
+          ].map(([id,label]) => `
+            <button class="admin-tab ${tab===id?'active':''}" data-action="admin-tab" data-tab="${id}">
+              ${label}
+            </button>`).join('')}
+        </div>
+        <div class="admin-body">
+          ${state.adminBusy ? `<div class="empty">⏳ Processando...</div>` : renderAdminTab()}
+        </div>
+      </div>
+    </div>`;
+}
+function renderAdminTab(){
+  switch(state.adminTab){
+    case 'regionais':    return renderAdminRegionais();
+    case 'distritos':    return renderAdminDistritos();
+    case 'igrejas':      return renderAdminIgrejas();
+    case 'usuarios':     return renderAdminUsuarios();
+    case 'diretores':    return renderAdminDiretores();
+    case 'ferramentas':  return renderAdminFerramentas();
+    default: return '';
+  }
+}
+function renderAdminRegionais(){
+  const list = state.regionais;
+  const edit = state.adminEditId ? list.find(r => r.id === state.adminEditId) : null;
+  return `
+    <div class="admin-grid">
+      <div class="admin-form">
+        <h3>${edit ? '✏️ Editar regional' : '➕ Novo regional'}</h3>
+        <form onsubmit="adminSalvarRegional(event)">
+          <div class="form-group">
+            <label>Nome do regional *</label>
+            <input type="text" id="regName" required value="${edit ? edit.name : ''}">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button type="submit" class="btn btn-primary btn-block">
+              ${edit ? 'Salvar alterações' : 'Criar regional'}
+            </button>
+            ${edit ? `<button type="button" class="btn btn-outline" data-action="admin-cancel">Cancelar</button>` : ''}
+          </div>
+        </form>
+      </div>
+      <div class="admin-list">
+        <h3 style="margin-bottom:12px;color:var(--primary);font-size:14px">${list.length} regional(is)</h3>
+        ${list.length === 0 ? `<div class="empty">Nenhum regional cadastrado.</div>` : `
+          <table>
+            <thead><tr><th>Nome</th><th>Distritos</th><th>Ações</th></tr></thead>
+            <tbody>
+              ${list.map(r => {
+                const nDists = state.distritais.filter(d => d.regionalId === r.id).length;
+                return `<tr>
+                  <td><strong>${r.name}</strong></td>
+                  <td>${nDists}</td>
+                  <td>
+                    <button class="icon-btn" title="Editar" data-action="admin-edit" data-id="${r.id}">✏️</button>
+                    <button class="icon-btn" title="Excluir" data-action="admin-del-regional" data-id="${r.id}">🗑️</button>
+                  </td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>`}
+      </div>
+    </div>`;
+}
+function renderAdminDistritos(){
+  const list = state.distritais;
+  const edit = state.adminEditId ? list.find(d => d.id === state.adminEditId) : null;
+  if (state.regionais.length === 0){
+    return `<div class="empty"><div class="empty-icon">🗺️</div>
+      Crie um <strong>regional</strong> primeiro antes de cadastrar distritos.
+      <br><br>
+      <button class="btn btn-primary" data-action="admin-tab" data-tab="regionais">Ir para Regionais</button></div>`;
+  }
+  return `
+    <div class="admin-grid">
+      <div class="admin-form">
+        <h3>${edit ? '✏️ Editar distrito' : '➕ Novo distrito'}</h3>
+        <form onsubmit="adminSalvarDistrito(event)">
+          <div class="form-group">
+            <label>Nome do distrito *</label>
+            <input type="text" id="distName" required value="${edit ? edit.name : ''}">
+          </div>
+          <div class="form-group">
+            <label>Regional *</label>
+            <select id="distRegional" required>
+              <option value="">Selecione...</option>
+              ${state.regionais.map(r => `
+                <option value="${r.id}" ${edit && edit.regionalId === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button type="submit" class="btn btn-primary btn-block">
+              ${edit ? 'Salvar alterações' : 'Criar distrito'}
+            </button>
+            ${edit ? `<button type="button" class="btn btn-outline" data-action="admin-cancel">Cancelar</button>` : ''}
+          </div>
+        </form>
+      </div>
+      <div class="admin-list">
+        <h3 style="margin-bottom:12px;color:var(--primary);font-size:14px">${list.length} distrito(s)</h3>
+        ${list.length === 0 ? `<div class="empty">Nenhum distrito cadastrado.</div>` : `
+          <table>
+            <thead><tr><th>Nome</th><th>Regional</th><th>Igrejas</th><th>Ações</th></tr></thead>
+            <tbody>
+              ${list.map(d => {
+                const reg = state.regionais.find(r => r.id === d.regionalId);
+                const nIgs = state.igrejas.filter(i => i.districtId === d.id).length;
+                return `<tr>
+                  <td><strong>${d.name}</strong></td>
+                  <td>${reg ? reg.name : '—'}</td>
+                  <td>${nIgs}</td>
+                  <td>
+                    <button class="icon-btn" title="Editar" data-action="admin-edit" data-id="${d.id}">✏️</button>
+                    <button class="icon-btn" title="Excluir" data-action="admin-del-distrito" data-id="${d.id}">🗑️</button>
+                  </td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>`}
+      </div>
+    </div>`;
+}
+function renderAdminIgrejas(){
+  const list = state.igrejas;
+  const edit = state.adminEditId ? list.find(i => i.id === state.adminEditId) : null;
+  if (state.distritais.length === 0){
+    return `<div class="empty"><div class="empty-icon">🏘️</div>
+      Crie um <strong>distrito</strong> primeiro antes de cadastrar igrejas.
+      <br><br>
+      <button class="btn btn-primary" data-action="admin-tab" data-tab="distritos">Ir para Distritos</button></div>`;
+  }
+  return `
+    <div class="admin-grid">
+      <div class="admin-form">
+        <h3>${edit ? '✏️ Editar igreja' : '➕ Nova igreja'}</h3>
+        <form onsubmit="adminSalvarIgreja(event)">
+          <div class="form-group">
+            <label>Nome da igreja *</label>
+            <input type="text" id="igName" required value="${edit ? edit.name : ''}">
+          </div>
+          <div class="form-group">
+            <label>Distrito *</label>
+            <select id="igDistrito" required>
+              <option value="">Selecione...</option>
+              ${state.distritais.map(d => `
+                <option value="${d.id}" ${edit && edit.districtId === d.id ? 'selected' : ''}>${d.name}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button type="submit" class="btn btn-primary btn-block">
+              ${edit ? 'Salvar alterações' : 'Criar igreja'}
+            </button>
+            ${edit ? `<button type="button" class="btn btn-outline" data-action="admin-cancel">Cancelar</button>` : ''}
+          </div>
+        </form>
+      </div>
+      <div class="admin-list">
+        <h3 style="margin-bottom:12px;color:var(--primary);font-size:14px">${list.length} igreja(s)</h3>
+        ${list.length === 0 ? `<div class="empty">Nenhuma igreja cadastrada.</div>` : `
+          <table>
+            <thead><tr><th>Igreja</th><th>Distrito</th><th>Diretores</th><th>Ações</th></tr></thead>
+            <tbody>
+              ${list.map(i => {
+                const dist = state.distritais.find(d => d.id === i.districtId);
+                const nDir = state.diretores.filter(d => d.churchId === i.id).length;
+                return `<tr>
+                  <td><strong>${i.name}</strong></td>
+                  <td>${dist ? dist.name : '—'}</td>
+                  <td>${nDir}</td>
+                  <td>
+                    <button class="icon-btn" title="Editar" data-action="admin-edit" data-id="${i.id}">✏️</button>
+                    <button class="icon-btn" title="Excluir" data-action="admin-del-igreja" data-id="${i.id}">🗑️</button>
+                  </td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>`}
+      </div>
+    </div>`;
+}
+function renderAdminUsuarios(){
+  return `
+    <div class="alert alert-info" style="font-size:13px">
+      <span>ℹ️</span>
+      <div>
+        <strong>Criação de contas de acesso.</strong>
+        Aqui você cria os usuários <strong>Regionais</strong> e <strong>Distritais</strong>.
+        A senha inicial é <strong>123456</strong> — peça para cada um alterar no primeiro acesso.
+        Os <strong>Diretores</strong> são cadastrados pelo próprio Distrital na aba <em>Diretores</em>.
+      </div>
+    </div>
+    <div class="admin-grid">
+      <div class="admin-form">
+        <h3>➕ Novo usuário</h3>
+        <form onsubmit="adminSalvarUsuario(event)">
+          <div class="form-group">
+            <label>Nome completo *</label>
+            <input type="text" id="uName" required placeholder="Ex: João Silva">
+          </div>
+          <div class="form-group">
+            <label>E-mail de acesso *</label>
+            <input type="email" id="uEmail" required placeholder="usuario@exemplo.com">
+          </div>
+          <div class="form-group">
+            <label>Perfil *</label>
+            <select id="uRole" required onchange="adminRoleChanged()">
+              <option value="">Selecione...</option>
+              <option value="regional">Regional</option>
+              <option value="distrital">Distrital</option>
+            </select>
+          </div>
+          <div class="form-group" id="uEscopoGroup">
+            <label>Vincular a *</label>
+            <select id="uEscopo" required>
+              <option value="">Selecione o perfil primeiro...</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Criar usuário</button>
+        </form>
+      </div>
+      <div class="admin-list">
+        <h3 style="margin-bottom:12px;color:var(--primary);font-size:14px">Usuários regionais e distritais</h3>
+        ${renderAdminUsuariosTabela()}
+      </div>
+    </div>`;
+}
+function renderAdminUsuariosTabela(){
+  const regionaisUsr = state.regionais.filter(r => r.username);
+  const distritaisUsr = state.distritais.filter(d => d.username);
+  const all = [
+    ...regionaisUsr.map(r => ({ ...r, role: 'regional', escopoNome: r.name })),
+    ...distritaisUsr.map(d => ({ ...d, role: 'distrital', escopoNome: d.name }))
+  ];
+  if (all.length === 0){
+    return `<div class="empty"><div class="empty-icon">👥</div>
+      Nenhum usuário cadastrado ainda.<br>
+      <span class="muted" style="font-size:12px">Use o formulário à esquerda para criar o primeiro.</span></div>`;
+  }
+  return `
+    <table>
+      <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Vínculo</th></tr></thead>
+      <tbody>
+        ${all.map(u => `
+          <tr>
+            <td><strong>${u.name || '—'}</strong></td>
+            <td><code style="font-size:12px">${u.username}</code></td>
+            <td><span class="badge badge-info">${roleLabel(u.role)}</span></td>
+            <td>${u.escopoNome}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+function adminRoleChanged(){
+  const role = document.getElementById('uRole').value;
+  const sel = document.getElementById('uEscopo');
+  const lbl = document.getElementById('uEscopoGroup').querySelector('label');
+  if (role === 'regional'){
+    lbl.textContent = 'Vincular ao regional *';
+    sel.innerHTML = '<option value="">Selecione...</option>' +
+      state.regionais.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+  } else if (role === 'distrital'){
+    lbl.textContent = 'Vincular ao distrito *';
+    sel.innerHTML = '<option value="">Selecione...</option>' +
+      state.distritais.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+  } else {
+    lbl.textContent = 'Vincular a *';
+    sel.innerHTML = '<option value="">Selecione o perfil primeiro...</option>';
+  }
+}
+function renderAdminDiretores(){
+  const list = state.diretores;
+  return `
+    <div class="alert alert-info" style="font-size:13px">
+      <span>ℹ️</span>
+      <div>Diretores são criados pelo <strong>Distrital</strong> no menu "Diretores".
+      Aqui você (Macro) pode visualizar e excluir.</div>
+    </div>
+    <div class="admin-list">
+      <h3 style="margin-bottom:12px;color:var(--primary);font-size:14px">${list.length} diretor(es)</h3>
+      ${list.length === 0 ? `<div class="empty">Nenhum diretor cadastrado.</div>` : `
+        <table>
+          <thead><tr><th>Nome</th><th>CPF</th><th>Telefone</th><th>Camisa</th>
+            <th>Igreja</th><th>E-mail</th><th>Ações</th></tr></thead>
+          <tbody>
+            ${list.map(d => `
+              <tr>
+                <td>${d.name}</td>
+                <td>${d.cpf}</td>
+                <td>${d.phone}</td>
+                <td><span class="badge badge-info">${d.shirtSize}</span></td>
+                <td>${churchName(d.churchId)}</td>
+                <td><code style="font-size:11px">${d.email || '—'}</code></td>
+                <td>
+                  <button class="icon-btn" title="Excluir"
+                    data-action="admin-del-diretor" data-id="${d.id}">🗑️</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`}
+    </div>`;
+}
+function renderAdminFerramentas(){
+  const totRegionais = state.regionais.length;
+  const totDistritos = state.distritais.length;
+  const totIgrejas   = state.igrejas.length;
+  const totDiretores = state.diretores.length;
+  const totAtiv      = state.activities.length;
+  return `
+    <div class="card" style="border:none;box-shadow:none;padding:0">
+      <h3 style="color:var(--primary);margin-bottom:14px">📊 Resumo do banco</h3>
+      <div class="stats-grid" style="margin-bottom:24px">
+        <div class="stat"><div class="stat-label">Regionais</div><div class="stat-value">${totRegionais}</div></div>
+        <div class="stat"><div class="stat-label">Distritos</div><div class="stat-value">${totDistritos}</div></div>
+        <div class="stat"><div class="stat-label">Igrejas</div><div class="stat-value">${totIgrejas}</div></div>
+        <div class="stat"><div class="stat-label">Diretores</div><div class="stat-value">${totDiretores}</div></div>
+        <div class="stat"><div class="stat-label">Atividades</div><div class="stat-value">${totAtiv}</div></div>
+      </div>
+      <h3 style="color:var(--primary);margin-bottom:14px">💾 Backup</h3>
+      <p class="muted" style="font-size:13px;margin-bottom:14px">
+        Baixe um arquivo JSON com toda a estrutura atual (regionais, distritos, igrejas, diretores).
+        Guarde em local seguro para restaurar depois se necessário.
+      </p>
+      <button class="btn btn-outline" data-action="admin-export" style="margin-bottom:24px">
+        📥 Exportar backup (JSON)
+      </button>
+      <div class="danger-zone">
+        <h3>⚠️ Zona de perigo</h3>
+        <p>As ações abaixo são <strong>irreversíveis</strong> e afetam <strong>todos os usuários</strong>. Use com extrema cautela.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+          <button class="btn btn-warning" data-action="admin-clear-activities">🧹 Apagar apenas atividades</button>
+          <button class="btn btn-danger" data-action="admin-reset-demo">💥 RESETAR TUDO (demo → produção)</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ---------- HANDLERS DO ADMIN ---------- */
+async function adminSalvarRegional(e){
+  e.preventDefault();
+  const name = document.getElementById('regName').value.trim();
+  if (!name) return;
+  state.adminBusy = true; render();
+  try {
+    if (state.adminEditId){
+      await updateDoc(doc(db, 'regionais', state.adminEditId), { name });
+    } else {
+      await addDoc(collection(db, 'regionais'), { name, createdAt: serverTimestamp() });
+    }
+    state.adminEditId = null;
+    alert('✅ Regional salvo!');
+  } catch(err){ alert('Erro: ' + err.message); }
+  state.adminBusy = false; render();
+}
+async function adminSalvarDistrito(e){
+  e.preventDefault();
+  const name = document.getElementById('distName').value.trim();
+  const regionalId = document.getElementById('distRegional').value;
+  if (!name || !regionalId) return;
+  state.adminBusy = true; render();
+  try {
+    if (state.adminEditId){
+      await updateDoc(doc(db, 'distritais', state.adminEditId), { name, regionalId });
+    } else {
+      await addDoc(collection(db, 'distritais'), { name, regionalId, createdAt: serverTimestamp() });
+    }
+    state.adminEditId = null;
+    alert('✅ Distrito salvo!');
+  } catch(err){ alert('Erro: ' + err.message); }
+  state.adminBusy = false; render();
+}
+async function adminSalvarIgreja(e){
+  e.preventDefault();
+  const name = document.getElementById('igName').value.trim();
+  const districtId = document.getElementById('igDistrito').value;
+  if (!name || !districtId) return;
+  state.adminBusy = true; render();
+  try {
+    const dist = state.distritais.find(d => d.id === districtId);
+    const regionalId = dist?.regionalId;
+    if (state.adminEditId){
+      await updateDoc(doc(db, 'igrejas', state.adminEditId), { name, districtId, regionalId });
+    } else {
+      await addDoc(collection(db, 'igrejas'), { name, districtId, regionalId, createdAt: serverTimestamp() });
+    }
+    state.adminEditId = null;
+    alert('✅ Igreja salva!');
+  } catch(err){ alert('Erro: ' + err.message); }
+  state.adminBusy = false; render();
+}
+async function adminSalvarUsuario(e){
+  e.preventDefault();
+  const name  = document.getElementById('uName').value.trim();
+  const email = document.getElementById('uEmail').value.trim();
+  const role  = document.getElementById('uRole').value;
+  const escopo = document.getElementById('uEscopo').value;
+  if (!name || !email || !role || !escopo){
+    return alert('Preencha todos os campos.');
+  }
+  state.adminBusy = true; render();
+  try {
+    const secondary = initializeApp(firebaseConfig, 'Secondary' + Date.now());
+    const secAuth = getAuth(secondary);
+    let cred;
+    try {
+      cred = await createUserWithEmailAndPassword(secAuth, email, '123456');
+    } finally {
+      await deleteApp(secondary);
+    }
+    if (role === 'regional'){
+      await updateDoc(doc(db, 'regionais', escopo), { username: email, userId: cred.user.uid });
+    } else if (role === 'distrital'){
+      await updateDoc(doc(db, 'distritais', escopo), { username: email, userId: cred.user.uid });
+    }
+    await setDoc(doc(db, 'usuarios', cred.user.uid), {
+      name, email, role, escopo, active: true,
+      createdAt: serverTimestamp()
+    });
+    alert(`✅ Usuário criado!\nE-mail: ${email}\nSenha inicial: 123456`);
+  } catch(err){
+    console.error(err);
+    alert('Erro: ' + err.message);
+  }
+  state.adminBusy = false; render();
+}
+async function adminExcluirRegional(id){
+  if (!confirm('Excluir este regional? Distritos vinculados ficarão órfãos.')) return;
+  try { await deleteDoc(doc(db, 'regionais', id)); alert('✅ Regional excluído.'); render(); }
+  catch(err){ alert('Erro: ' + err.message); }
+}
+async function adminExcluirDistrito(id){
+  if (!confirm('Excluir este distrito? Igrejas vinculadas ficarão órfãs.')) return;
+  try { await deleteDoc(doc(db, 'distritais', id)); alert('✅ Distrito excluído.'); render(); }
+  catch(err){ alert('Erro: ' + err.message); }
+}
+async function adminExcluirIgreja(id){
+  if (!confirm('Excluir esta igreja?')) return;
+  try { await deleteDoc(doc(db, 'igrejas', id)); alert('✅ Igreja excluída.'); render(); }
+  catch(err){ alert('Erro: ' + err.message); }
+}
+async function adminExcluirDiretor(id){
+  const d = state.diretores.find(x => x.id === id);
+  if (!d) return;
+  if (!confirm(`Excluir o diretor "${d.name}"?\n\n⚠️ A conta de Authentication (${d.email}) NÃO será removida automaticamente.\nVocê precisará removê-la manualmente no Firebase Console.`)) return;
+  try {
+    await deleteDoc(doc(db, 'diretores', id));
+    if (d.uid){
+      await updateDoc(doc(db, 'usuarios', d.uid), { active: false }).catch(()=>{});
+    }
+    alert('✅ Diretor excluído. Remova o usuário no Firebase Console → Authentication.');
+    render();
+  } catch(err){ alert('Erro: ' + err.message); }
+}
+async function adminApagarAtividades(){
+  if (!confirm('Apagar TODAS as atividades? Esta ação é irreversível.')) return;
+  if (prompt('Digite APAGAR para confirmar:') !== 'APAGAR') return alert('Cancelado.');
+  state.adminBusy = true; render();
+  try {
+    const snap = await getDocs(collection(db, 'atividades'));
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    alert(`✅ ${snap.size} atividade(s) apagada(s).`);
+  } catch(err){ alert('Erro: ' + err.message); }
+  state.adminBusy = false; render();
+}
+async function adminResetarDemo(){
+  const pass1 = confirm(
+    '⚠️ ATENÇÃO: RESET GERAL\n\n' +
+    'Isso vai apagar:\n• TODAS as atividades\n• TODAS as igrejas\n• TODOS os distritos\n' +
+    '• TODOS os regionais\n• TODOS os diretores\n• TODOS os usuários (exceto VOCÊ)\n\nContinuar?');
+  if (!pass1) return;
+  const pass2 = prompt('Digite APAGAR TUDO (em maiúsculas) para confirmar:');
+  if (pass2 !== 'APAGAR TUDO') return alert('Cancelado.');
+  state.adminBusy = true; render();
+  try {
+    const colecoes = ['atividades', 'igrejas', 'diretores', 'distritais', 'regionais'];
+    for (const col of colecoes){
+      const snap = await getDocs(collection(db, col));
+      let ops = [];
+      for (const docSnap of snap.docs){
+        ops.push(docSnap.ref);
+        if (ops.length >= 400){
+          const b = writeBatch(db);
+          ops.forEach(r => b.delete(r));
+          await b.commit();
+          ops = [];
+        }
+      }
+      if (ops.length){
+        const b = writeBatch(db);
+        ops.forEach(r => b.delete(r));
+        await b.commit();
+      }
+    }
+    const usrSnap = await getDocs(collection(db, 'usuarios'));
+    const b2 = writeBatch(db);
+    usrSnap.docs.forEach(d => {
+      if (d.id !== state.user.uid) b2.delete(d.ref);
+    });
+    await b2.commit();
+    alert(
+      '✅ Reset concluído!\n\n⚠️ AÇÃO MANUAL NECESSÁRIA:\n' +
+      'Os usuários foram removidos do Firestore, mas as contas em Authentication ainda existem.\n\n' +
+      '1. Firebase Console → Authentication → Users\n' +
+      '2. Selecione todos (exceto seu e-mail Macro)\n3. Clique em Excluir'
+    );
+  } catch(err){ alert('Erro: ' + err.message); }
+  state.adminBusy = false; render();
+}
+function adminExportarBackup(){
+  const data = {
+    exportadoEm: new Date().toISOString(),
+    regionais: state.regionais,
+    distritais: state.distritais,
+    igrejas: state.igrejas,
+    diretores: state.diretores
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `backup-jovens-iasd-${today()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ===================== 10. SEED DEMO ===================== */
+async function seedDemo(){
+  if (!confirm('Isso vai criar dados de demonstração (regionais, distritos, igrejas). Continuar?')) return;
+  try {
+    const regionaisData = [
+      { name: 'Regional Norte' }, { name: 'Regional Sul' },
+      { name: 'Regional Leste' }, { name: 'Regional Oeste' }
+    ];
+    const regIds = [];
+    for (const r of regionaisData){
+      const id = uid();
+      regIds.push(id);
+      await setDoc(doc(db, 'regionais', id), { name: r.name, createdAt: serverTimestamp() });
+    }
+    const distritaisPorRegional = [
+      ['Distrito Central','Distrito Esperança'],
+      ['Distrito Fé','Distrito Amor'],
+      ['Distrito Graça','Distrito Paz'],
+      ['Distrito Luz','Distrito Vida']
+    ];
+    const distIds = [];
+    for (let i = 0; i < regIds.length; i++){
+      for (const dn of distritaisPorRegional[i]){
+        const id = uid();
+        distIds.push({ id, regionalId: regIds[i], name: dn });
+        await setDoc(doc(db, 'distritais', id), {
+          name: dn, regionalId: regIds[i], createdAt: serverTimestamp()
+        });
+      }
+    }
+    for (const d of distIds){
+      for (const suf of ['I','II']){
+        await addDoc(collection(db, 'igrejas'), {
+          name: `IASD ${d.name} ${suf}`,
+          districtId: d.id, regionalId: d.regionalId,
+          createdAt: serverTimestamp()
+        });
+      }
+    }
+    alert('✅ Dados de demonstração criados! Recarregue para vê-los.');
+  } catch(err){ alert('Erro: ' + err.message); }
+}
+
+/* ===================== 11. EVENTOS GLOBAIS ===================== */
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const action = el.dataset.action;
+
+  if (action === 'close-modal'){
+    if (el === e.target){ state.modal = null; render(); }
+    return;
+  }
+  if (action === 'close-admin'){
+    if (el === e.target){ state.adminOpen = false; state.adminEditId = null; render(); }
+    return;
+  }
+  if (action === 'close-admin-x'){
+    state.adminOpen = false; state.adminEditId = null; render();
+    return;
+  }
+
+  switch(action){
+    case 'nav': state.view = el.dataset.view; state.modal = null; render(); break;
+    case 'logout': handleLogout(); break;
+    case 'view-activity': {
+      const a = state.activities.find(x => x.id === el.dataset.id);
+      if (a){ state.modal = a; render(); } break;
+    }
+    case 'seed': seedDemo(); break;
+    case 'open-admin': state.adminOpen = true; state.adminEditId = null; render(); break;
+    case 'admin-tab': state.adminTab = el.dataset.tab; state.adminEditId = null; render(); break;
+    case 'admin-edit': state.adminEditId = el.dataset.id; render(); break;
+    case 'admin-cancel': state.adminEditId = null; render(); break;
+    case 'admin-del-regional': adminExcluirRegional(el.dataset.id); break;
+    case 'admin-del-distrito': adminExcluirDistrito(el.dataset.id); break;
+    case 'admin-del-igreja':   adminExcluirIgreja(el.dataset.id); break;
+    case 'admin-del-diretor':  adminExcluirDiretor(el.dataset.id); break;
+    case 'admin-export':       adminExportarBackup(); break;
+    case 'admin-clear-activities': adminApagarAtividades(); break;
+    case 'admin-reset-demo':   adminResetarDemo(); break;
+  }
+});
+
+window.handleLogin = handleLogin;
+window.handleResetPassword = handleResetPassword;
+window.confirmarBootstrap = confirmarBootstrap;
+window.onTypeChange = onTypeChange;
+window.previewFiles = previewFiles;
+window.submitActivity = submitActivity;
+window.submitDirector = submitDirector;
+window.submitChurch = submitChurch;
+window.validateActivity = validateActivity;
+window.reenviarAtividade = reenviarAtividade;
+window.adminSalvarRegional = adminSalvarRegional;
+window.adminSalvarDistrito = adminSalvarDistrito;
+window.adminSalvarIgreja = adminSalvarIgreja;
+window.adminSalvarUsuario = adminSalvarUsuario;
+window.adminRoleChanged = adminRoleChanged;
+window.render = render;
+window.state = state;
+</script>
+</body>
+</html>
