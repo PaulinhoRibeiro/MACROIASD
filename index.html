@@ -179,6 +179,11 @@
   .icon-btn{background:transparent;border:none;cursor:pointer;font-size:16px;
     padding:6px 8px;border-radius:6px;transition:background .15s;line-height:1}
   .icon-btn:hover{background:rgba(0,0,0,.08)}
+  .missionario-box{background:#f0f4fa;border-radius:10px;padding:16px;margin-top:10px;
+    border:1px solid var(--border)}
+  .desc-box{background:#f0f4fa;border-radius:8px;padding:12px;margin:10px 0}
+  .desc-box strong{font-size:12px;color:var(--muted);text-transform:uppercase;display:block}
+  .desc-box p{margin-top:6px;line-height:1.5}
   @media(max-width:760px){
     .sidebar{width:100%;height:auto;position:relative}
     .main{margin-left:0}
@@ -210,7 +215,6 @@ const firebaseConfig = {
   appId:             "1:483144428962:web:bfa2a715d4d4753ffb16fb"
 };
 
-/* ===== IMGBB API KEY ===== */
 const IMGBB_API_KEY = '9840a7978bd642621cdb9d1ce3e33325';
 
 const app  = initializeApp(firebaseConfig);
@@ -255,13 +259,37 @@ function statusBadge(s){
 function isOverdue(a){
   return a.status === 'pendente' && a.deadline && new Date(a.deadline) < new Date();
 }
+
+/* ===================== PONTUAÇÃO ===================== */
 function activityPoints(a){
   if (a.type === 'outside') return 60;
   let pts = 50;
-  if (a.missionario) pts += 15;
-  if (a.licao7)      pts += 15;
-  if (a.visitas)     pts += 20;
+  // Momentos missionários (novo formato com objeto)
+  if (a.missionario && typeof a.missionario === 'object'){
+    if (a.missionario.tem) pts += 25;
+  } else if (a.missionario === true){
+    pts += 25;
+  }
+  // Preencheu o sistema (compatibilidade com campos antigos)
+  if (a.preencheuSistema || a.licao7 || a.visitas){
+    pts += 25;
+  }
   return pts;
+}
+
+// Helpers de compatibilidade para atividades antigas
+function isMissionario(a){
+  if (!a.missionario) return false;
+  if (typeof a.missionario === 'boolean') return a.missionario;
+  return a.missionario.tem === true;
+}
+function getMissionarioDesc(a){
+  if (!a.missionario || typeof a.missionario !== 'object') return '';
+  return a.missionario.descricao || '';
+}
+function getMissionarioPhotos(a){
+  if (!a.missionario || typeof a.missionario !== 'object') return [];
+  return a.missionario.photos || [];
 }
 
 /* ===================== 5. ESCOPO ===================== */
@@ -806,12 +834,6 @@ function renderNewActivity(){
         </div>
         <div id="typeFields"></div>
         <div class="form-group">
-          <label>Comprovação (fotos) *</label>
-          <input type="file" id="actFiles" accept="image/*" multiple onchange="previewFiles(event)">
-          <div class="hint">Anexe fotos que comprovem a realização. Elas são redimensionadas e enviadas ao ImgBB automaticamente.</div>
-          <div class="file-preview" id="filePreview"></div>
-        </div>
-        <div class="form-group">
           <label>Observações</label>
           <textarea id="actNotes" rows="3" placeholder="Informações adicionais para o distrital..."></textarea>
         </div>
@@ -824,9 +846,11 @@ function renderNewActivity(){
       </form>
     </div>`;
 }
+
 function onTypeChange(){
   const t = document.getElementById('actType').value;
   const c = document.getElementById('typeFields');
+
   if (t === 'outside'){
     c.innerHTML = `
       <div class="form-row">
@@ -840,19 +864,75 @@ function onTypeChange(){
             <input type="checkbox" id="eventoRealizado" required> Sim, o evento aconteceu
           </label>
         </div>
+      </div>
+      <div class="form-group">
+        <label>Comprovação (fotos) *</label>
+        <input type="file" id="actFiles" accept="image/*" multiple onchange="previewFiles(event)">
+        <div class="hint">Anexe fotos que comprovem a realização do evento.</div>
+        <div class="file-preview" id="filePreview"></div>
       </div>`;
-  } else if (t === 'maranata' || t === 'comunidade'){
+  } else if (t === 'maranata'){
     c.innerHTML = `
-      <div class="checks">
-        <label class="check-item"><input type="checkbox" id="realizado"> Ação realizada</label>
-        <label class="check-item"><input type="checkbox" id="missionario"> Teve momento missionário</label>
-        <label class="check-item"><input type="checkbox" id="licao7"> Estudaram a lição 7 dias</label>
-        <label class="check-item"><input type="checkbox" id="visitas"> Teve visitas</label>
+      <div class="form-group">
+        <label class="check-item" style="display:inline-flex;width:auto;margin-bottom:12px">
+          <input type="checkbox" id="missionarioCheck" onchange="toggleMissionarioFields()">
+          Momentos missionários realizados
+        </label>
+        <div id="missionarioFields" style="display:none" class="missionario-box">
+          <div class="form-group">
+            <label>Fotos dos momentos missionários *</label>
+            <input type="file" id="missionarioFiles" accept="image/*" multiple onchange="previewFilesMissionario(event)">
+            <div class="hint">Anexe fotos que comprovem os momentos missionários.</div>
+            <div class="file-preview" id="missionarioPreview"></div>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Descreva o que foi realizado *</label>
+            <textarea id="missionarioDesc" rows="3" placeholder="Ex: Visita a um lar, entrega de folhetos, estudo bíblico..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="check-item" style="display:inline-flex;width:auto">
+          <input type="checkbox" id="preencheuSistema">
+          Preencheu o sistema corretamente
+        </label>
       </div>`;
-  } else c.innerHTML = '';
+  } else if (t === 'comunidade'){
+    c.innerHTML = `
+      <div class="form-group">
+        <label class="check-item" style="display:inline-flex;width:auto;margin-bottom:12px">
+          <input type="checkbox" id="missionarioCheck" onchange="toggleMissionarioFields()">
+          Teve momento missionário
+        </label>
+        <div id="missionarioFields" style="display:none" class="missionario-box">
+          <div class="form-group">
+            <label>Fotos do momento missionário *</label>
+            <input type="file" id="missionarioFiles" accept="image/*" multiple onchange="previewFilesMissionario(event)">
+            <div class="hint">Anexe fotos que comprovem o momento missionário.</div>
+            <div class="file-preview" id="missionarioPreview"></div>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Descreva o que foi realizado *</label>
+            <textarea id="missionarioDesc" rows="3" placeholder="Ex: Visita a um lar, entrega de folhetos, estudo bíblico..."></textarea>
+          </div>
+        </div>
+      </div>`;
+  } else {
+    c.innerHTML = '';
+  }
 }
+
+function toggleMissionarioFields(){
+  const check = document.getElementById('missionarioCheck');
+  const fields = document.getElementById('missionarioFields');
+  if (check && fields){
+    fields.style.display = check.checked ? 'block' : 'none';
+  }
+}
+
 function previewFiles(e){
   const cont = document.getElementById('filePreview');
+  if (!cont) return;
   cont.innerHTML = '';
   for (const f of e.target.files){
     if (f.type.startsWith('image/')){
@@ -862,6 +942,20 @@ function previewFiles(e){
     }
   }
 }
+
+function previewFilesMissionario(e){
+  const cont = document.getElementById('missionarioPreview');
+  if (!cont) return;
+  cont.innerHTML = '';
+  for (const f of e.target.files){
+    if (f.type.startsWith('image/')){
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(f);
+      cont.appendChild(img);
+    }
+  }
+}
+
 async function compressImage(file, maxW = 1280, quality = 0.78){
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -931,28 +1025,62 @@ async function submitActivity(e){
       photos: [],
       history: [{ at: new Date().toISOString(), who: u.uid, action: 'criado' }]
     };
+
     if (type === 'outside'){
       activity.eventoRealizado = document.getElementById('eventoRealizado').checked;
       activity.eventName = document.getElementById('eventName').value;
+      const files = document.getElementById('actFiles').files;
+      for (let i = 0; i < files.length; i++){
+        const f = files[i];
+        btn.textContent = `Enviando ${i+1}/${files.length}...`;
+        const blob = await compressImage(f);
+        const url = await uploadImagemParaImgBB(blob, f.name);
+        activity.photos.push({ kind:'image', url, name:f.name });
+      }
+      if (activity.photos.length === 0 &&
+          !confirm('Nenhuma comprovação anexada. Enviar mesmo assim?')){
+        btn.disabled = false; btn.textContent = 'Enviar para validação';
+        return;
+      }
     } else {
-      activity.realizado   = document.getElementById('realizado').checked;
-      activity.missionario = document.getElementById('missionario').checked;
-      activity.licao7      = document.getElementById('licao7').checked;
-      activity.visitas     = document.getElementById('visitas').checked;
+      // Maranata ou Comunidade - processa momentos missionários
+      const check = document.getElementById('missionarioCheck');
+      const temMissionario = check ? check.checked : false;
+
+      activity.missionario = {
+        tem: temMissionario,
+        photos: [],
+        descricao: ''
+      };
+
+      if (temMissionario){
+        const desc = (document.getElementById('missionarioDesc')?.value || '').trim();
+        if (!desc){
+          btn.disabled = false; btn.textContent = 'Enviar para validação';
+          return alert('Por favor, descreva o que foi realizado nos momentos missionários.');
+        }
+        activity.missionario.descricao = desc;
+
+        const mFiles = document.getElementById('missionarioFiles')?.files || [];
+        if (mFiles.length === 0){
+          btn.disabled = false; btn.textContent = 'Enviar para validação';
+          return alert('Anexe pelo menos uma foto dos momentos missionários.');
+        }
+
+        for (let i = 0; i < mFiles.length; i++){
+          const f = mFiles[i];
+          btn.textContent = `Enviando foto ${i+1}/${mFiles.length}...`;
+          const blob = await compressImage(f);
+          const url = await uploadImagemParaImgBB(blob, f.name);
+          activity.missionario.photos.push({ url, name: f.name });
+        }
+      }
+
+      if (type === 'maranata'){
+        activity.preencheuSistema = document.getElementById('preencheuSistema').checked;
+      }
     }
-    const files = document.getElementById('actFiles').files;
-    for (let i = 0; i < files.length; i++){
-      const f = files[i];
-      btn.textContent = `Enviando ${i+1}/${files.length}...`;
-      const blob = await compressImage(f);
-      const url = await uploadImagemParaImgBB(blob, f.name);
-      activity.photos.push({ kind:'image', url, name:f.name });
-    }
-    if (activity.photos.length === 0 &&
-        !confirm('Nenhuma comprovação anexada. Enviar mesmo assim?')){
-      btn.disabled = false; btn.textContent = 'Enviar para validação';
-      return;
-    }
+
     await addDoc(collection(db, 'atividades'), activity);
     alert('✅ Atividade enviada! O distrital foi notificado em tempo real.');
     state.view = 'activities';
@@ -1005,10 +1133,12 @@ function renderRanking(){
   return `
     <div class="card">
       <h2>🏆 Ranking de Igrejas</h2>
-      <p class="muted" style="margin-bottom:16px">
-        Pontuação baseada em atividades <strong>validadas</strong>.
-        Maranata/Comunidade = 50 base + 15 (missionário) + 15 (lição 7d) + 20 (visitas). Outside = 60.
-      </p>
+      <div class="muted" style="margin-bottom:16px;line-height:1.7">
+        Pontuação baseada em atividades <strong>validadas</strong>:<br>
+        <strong>Maranata:</strong> 50 base + 25 (momentos missionários) + 25 (preencheu o sistema) = <strong>até 100 pts</strong><br>
+        <strong>Comunidade Jovem:</strong> 50 base + 25 (momento missionário) = <strong>até 75 pts</strong><br>
+        <strong>Outside:</strong> 60 pts por evento
+      </div>
       ${rk.length === 0 ? `<div class="empty">Sem igrejas no escopo.</div>` :
         rk.map((c,i) => `
           <div class="rank-item">
@@ -1263,18 +1393,50 @@ function renderModal(){
   const u = state.user;
   const canValidate = u.role === 'distrital' && a.districtId === u.escopo && a.status === 'pendente';
   const canResend   = u.role === 'diretor' && a.directorId === u.diretorId && a.status === 'rejeitado';
+
   let criterios = '';
   if (a.type === 'outside'){
     criterios = `
       <div class="detail-row"><span class="lbl">Evento</span><span class="val">${a.eventName || '—'}</span></div>
       <div class="detail-row"><span class="lbl">Realizado</span><span class="val">${a.eventoRealizado ? '✅ Sim' : '❌ Não'}</span></div>`;
-  } else {
+  } else if (a.type === 'maranata'){
+    const temMiss = isMissionario(a);
+    const desc = getMissionarioDesc(a);
+    const photos = getMissionarioPhotos(a);
     criterios = `
-      <div class="detail-row"><span class="lbl">Ação realizada</span><span class="val">${a.realizado ? '✅' : '❌'}</span></div>
-      <div class="detail-row"><span class="lbl">Momento missionário</span><span class="val">${a.missionario ? '✅' : '❌'}</span></div>
-      <div class="detail-row"><span class="lbl">Lição 7 dias</span><span class="val">${a.licao7 ? '✅' : '❌'}</span></div>
-      <div class="detail-row"><span class="lbl">Visitas</span><span class="val">${a.visitas ? '✅' : '❌'}</span></div>`;
+      <div class="detail-row"><span class="lbl">Momentos missionários</span><span class="val">${temMiss ? '✅' : '❌'}</span></div>
+      ${temMiss && desc ? `<div class="desc-box">
+        <strong>O que foi realizado:</strong>
+        <p>${desc}</p>
+      </div>` : ''}
+      ${temMiss && photos.length > 0 ? `
+        <div style="margin:10px 0">
+          <strong style="font-size:12px;color:var(--muted);text-transform:uppercase">Fotos dos momentos missionários:</strong>
+          <div class="photo-grid">
+            ${photos.map(p => `<img src="${p.url}" onclick="window.open('${p.url}','_blank')">`).join('')}
+          </div>
+        </div>` : ''}
+      <div class="detail-row"><span class="lbl">Preencheu o sistema</span><span class="val">${a.preencheuSistema ? '✅' : '❌'}</span></div>`;
+  } else {
+    // comunidade
+    const temMiss = isMissionario(a);
+    const desc = getMissionarioDesc(a);
+    const photos = getMissionarioPhotos(a);
+    criterios = `
+      <div class="detail-row"><span class="lbl">Teve momento missionário</span><span class="val">${temMiss ? '✅' : '❌'}</span></div>
+      ${temMiss && desc ? `<div class="desc-box">
+        <strong>O que foi realizado:</strong>
+        <p>${desc}</p>
+      </div>` : ''}
+      ${temMiss && photos.length > 0 ? `
+        <div style="margin:10px 0">
+          <strong style="font-size:12px;color:var(--muted);text-transform:uppercase">Fotos do momento missionário:</strong>
+          <div class="photo-grid">
+            ${photos.map(p => `<img src="${p.url}" onclick="window.open('${p.url}','_blank')">`).join('')}
+          </div>
+        </div>` : ''}`;
   }
+
   return `
     <div class="modal-overlay" data-action="close-modal">
       <div class="modal">
@@ -1300,11 +1462,11 @@ function renderModal(){
               <div style="margin-top:4px">${a.validationNotes}</div>
             </div>
           </div>` : ''}
-        <h3 style="margin-top:20px;margin-bottom:8px;color:var(--primary);font-size:14px">Comprovações</h3>
-        ${(a.photos||[]).length === 0 ? `<p class="muted">Nenhum arquivo anexado.</p>` : `
+        ${(a.photos||[]).length > 0 ? `
+          <h3 style="margin-top:20px;margin-bottom:8px;color:var(--primary);font-size:14px">Comprovações</h3>
           <div class="photo-grid">
             ${a.photos.map(p => `<img src="${p.url}" onclick="window.open('${p.url}','_blank')">`).join('')}
-          </div>`}
+          </div>` : ''}
         ${a.history && a.history.length ? `
           <h3 style="margin-top:20px;margin-bottom:8px;color:var(--primary);font-size:14px">Histórico</h3>
           <div style="font-size:12px;color:var(--muted);line-height:1.8">
@@ -2005,7 +2167,9 @@ window.handleLogin = handleLogin;
 window.handleResetPassword = handleResetPassword;
 window.confirmarBootstrap = confirmarBootstrap;
 window.onTypeChange = onTypeChange;
+window.toggleMissionarioFields = toggleMissionarioFields;
 window.previewFiles = previewFiles;
+window.previewFilesMissionario = previewFilesMissionario;
 window.submitActivity = submitActivity;
 window.submitDirector = submitDirector;
 window.submitChurch = submitChurch;
